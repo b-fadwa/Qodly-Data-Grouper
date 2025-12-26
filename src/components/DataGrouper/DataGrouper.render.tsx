@@ -79,6 +79,10 @@ const DataGrouper: FC<IDataGrouperProps> = ({
     };
 
     load();
+    ds.addListener('changed', load);
+    return () => {
+      ds.removeListener('changed', load);
+    };
   }, [ds]);
 
   //read entity selection datasource
