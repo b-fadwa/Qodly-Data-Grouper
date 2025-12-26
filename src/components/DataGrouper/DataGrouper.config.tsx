@@ -60,6 +60,8 @@ export default {
     groupBy: '',
     style: {
       height: '400px',
+      minHeight: '400px',
+      overflow:'auto'
     },
   },
 } as T4DComponentConfig<IDataGrouperProps>;

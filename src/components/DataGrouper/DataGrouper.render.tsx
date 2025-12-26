@@ -35,7 +35,6 @@ const DataGrouper: FC<IDataGrouperProps> = ({
     if (!ds) return;
 
     const load = async () => {
-      console.log('ds.dataType', ds.dataType);
       if (ds.dataType === 'array') {
         const result = await ds.getValue();
         //check if it's a direct array or encapsulated inside object
@@ -60,25 +59,21 @@ const DataGrouper: FC<IDataGrouperProps> = ({
     }
   }, [entities, ds]);
 
-
   //grouping data
   useEffect(() => {
-    console.log({ groupBy });
     if (!groupBy || !value.length) {
       setGroupedData({});
       return;
     }
     const grouped = value.reduce(
-      (acc: Record<string, any[]>, entity: any, originalIndex: number) => {
-        const key = entity[groupBy] ?? 'Others';
-
+      (
+        acc: Record<string, { entity: any; originalIndex: number }[]>,
+        entity: any,
+        originalIndex: number,
+      ) => {
+        const key = entity[groupBy];
         if (!acc[key]) acc[key] = [];
-
-        acc[key].push({
-          entity,
-          originalIndex,
-        });
-
+        acc[key].push({ entity, originalIndex });
         return acc;
       },
       {},
@@ -87,54 +82,51 @@ const DataGrouper: FC<IDataGrouperProps> = ({
     setGroupedData(grouped);
   }, [value, groupBy]);
 
+  //refacto : data display structure
+  const dataStructure = (entity: any, index: any) => {
+    return (
+      <div key={entity.__KEY} className="relative h-full flex-shrink-0 w-full">
+        <EntityProvider index={index} selection={ds} current={currentDs?.id} iterator={iterator}>
+          <Element
+            id="dataGrouperItem"
+            className="h-full w-full "
+            role="dataGrouperItem-content"
+            is={resolver.StyleBox}
+            canvas
+          />
+        </EntityProvider>
+      </div>
+    );
+  };
+
   return (
-    <div ref={connect} style={style} className={cn(className, classNames)}>
-      <div className="bg-red-200 p-2">
+    <div ref={connect} style={style} className={cn(className, classNames, 'overflow-auto')}>
+      <div className="p-2">
         {/* array datasource, with or without groupBy */}
         {ds?.dataType === 'array' && (
           <>
             {groupBy
               ? Object.entries(groupedData).map(([groupKey, items]) => (
                   <div key={groupKey} className="mb-4">
-                    <div className="font-semibold mb-2">{groupKey}</div>
-                    {items.map((entity: any, index: any) => (
-                      <div key={entity.__KEY} className="relative h-full flex-shrink-0 w-full">
-                        <EntityProvider
-                          index={index}
-                          selection={ds}
-                          current={currentDs?.id}
-                          iterator={iterator}
-                        >
-                          <Element
-                            id="dataGrouperItem"
-                            className="h-full w-full "
-                            role="dataGrouperItem-content"
-                            is={resolver.StyleBox}
-                            canvas
-                          />
-                        </EntityProvider>
-                      </div>
-                    ))}
+                    <div className="category-label font-semibold mb-2">{groupKey}</div>
+
+                    {items.map(({ entity, originalIndex }) => dataStructure(entity, originalIndex))}
                   </div>
                 ))
-              : value.map((entity, index) => (
-                  <div key={entity.__KEY} className="relative h-full flex-shrink-0 w-full">
-                    <EntityProvider
-                      index={index}
-                      selection={ds}
-                      current={currentDs?.id}
-                      iterator={iterator}
-                    >
-                      <Element
-                        id="dataGrouperItem"
-                        className="h-full w-full "
-                        role="dataGrouperItem-content"
-                        is={resolver.StyleBox}
-                        canvas
-                      />
-                    </EntityProvider>
+              : value.map((entity, index) => dataStructure(entity, index))}
+          </>
+        )}
+        {/* entitySel datasource with or without groupBy */}
+        {ds?.dataType !== 'array' && (
+          <>
+            {groupBy
+              ? Object.entries(groupedData).map(([groupKey, items]) => (
+                  <div key={groupKey} className="mb-4">
+                    <div className="category-label font-semibold mb-2">{groupKey}</div>
+                    {items.map(({ entity, originalIndex }) => dataStructure(entity, originalIndex))}
                   </div>
-                ))}
+                ))
+              : value.map((entity, index) => dataStructure(entity, index))}
           </>
         )}
       </div>
