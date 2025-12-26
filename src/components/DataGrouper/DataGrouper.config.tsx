@@ -24,6 +24,10 @@ export default {
     icon: LuGroup,
     events: [
       {
+        label: 'On Select',
+        value: 'onselect',
+      },
+      {
         label: 'On Click',
         value: 'onclick',
       },
