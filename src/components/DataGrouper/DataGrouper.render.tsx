@@ -19,7 +19,7 @@ const DataGrouper: FC<IDataGrouperProps> = ({
   className,
   classNames = [],
 }) => {
-  const { connect } = useRenderer();
+  const { connect, emit } = useRenderer();
   const { resolver } = useEnhancedEditor(selectResolver);
 
   const {
@@ -46,10 +46,12 @@ const DataGrouper: FC<IDataGrouperProps> = ({
     switch (currentDs.type) {
       case 'entity': {
         await updateEntity({ index, datasource: ds, currentElement: currentDs, fireEvent });
+        emit('onselect', { selectedDate: currentDs });
         break;
       }
       case 'scalar': {
         if (ds.dataType !== 'array') {
+        emit('onselect', { selectedDate: currentDs });
           return;
         }
         const value = await ds.getValue();
@@ -79,6 +81,10 @@ const DataGrouper: FC<IDataGrouperProps> = ({
     };
 
     load();
+    ds.addListener('changed', load);
+    return () => {
+      ds.removeListener('changed', load);
+    };
   }, [ds]);
 
   //read entity selection datasource
@@ -126,6 +132,7 @@ const DataGrouper: FC<IDataGrouperProps> = ({
             role="dataGrouperItem-content"
             is={resolver.StyleBox}
             canvas
+            iterableChild
           />
         </EntityProvider>
       </div>

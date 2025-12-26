@@ -1,4 +1,4 @@
-import { EComponentKind, T4DComponentConfig } from '@ws-ui/webform-editor';
+import { EComponentKind, splitDatasourceID, T4DComponentConfig, T4DComponentDatasourceDeclaration } from '@ws-ui/webform-editor';
 import { Settings } from '@ws-ui/webform-editor';
 import { LuGroup } from 'react-icons/lu';
 
@@ -23,6 +23,10 @@ export default {
     exposed: true,
     icon: LuGroup,
     events: [
+      {
+        label: 'On Select',
+        value: 'onselect',
+      },
       {
         label: 'On Click',
         value: 'onclick',
@@ -54,12 +58,33 @@ export default {
     ],
     datasources: {
       accept: ['entitysel', 'array'],
+       declarations: (props: any) => {
+        const { currentElement, groupBy, datasource = '' } = props;
+        const declarations: T4DComponentDatasourceDeclaration[] = [
+          { path: datasource, iterable: true },
+          { path: currentElement }
+        ];
+        if (groupBy ) {
+          const { id: ds } = splitDatasourceID(datasource?.trim()) || {};
+
+          if (!ds) {
+            return;
+          }
+
+          const { id: groupByID } = splitDatasourceID(groupBy);
+          declarations.push({
+            path: `${datasource}.[].${groupByID}`,
+          })
+        }
+        return declarations;
+      },
     },
   },
   defaultProps: {
+    iterable: true,
     style: {
       height: '400px',
-      overflow:'auto'
+      overflow: 'auto',
     },
   },
 } as T4DComponentConfig<IDataGrouperProps>;
