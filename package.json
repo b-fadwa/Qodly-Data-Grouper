@@ -2,7 +2,7 @@
   "app_id": "qodly_b81f64309347d325fc7b",
   "name": "data-grouper",
   "private": true,
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
   "author": {
     "name": "Qodly Team",
