@@ -132,6 +132,7 @@ const DataGrouper: FC<IDataGrouperProps> = ({
             role="dataGrouperItem-content"
             is={resolver.StyleBox}
             canvas
+            iterableChild
           />
         </EntityProvider>
       </div>
