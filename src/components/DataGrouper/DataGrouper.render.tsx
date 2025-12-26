@@ -32,32 +32,35 @@ const DataGrouper: FC<IDataGrouperProps> = ({
   const [groupedData, setGroupedData] = useState<Record<string, any[]>>({});
 
   //update selected element
-  const handleSelectedElementChange = async ({
-    index,
-    fireEvent = true,
-  }: {
-    index: number;
-    forceUpdate?: boolean;
-    fireEvent?: boolean;
-  }) => {
-    if (!ds || !currentDs) {
-      return;
+  const handleSelectedElementChange = async ({ index }: { index: number }) => {
+    if (!ds || !currentDs) return;
+
+    //entity case
+    if (currentDs.type === 'entity') {
+      await updateEntity({
+        index,
+        datasource: ds,
+        currentElement: currentDs,
+        fireEvent: true,
+      });
+
+      emit('onselect', {
+        index,
+        datasourceId: ds.id,
+        type: 'entity',
+      });
     }
-    switch (currentDs.type) {
-      case 'entity': {
-        await updateEntity({ index, datasource: ds, currentElement: currentDs, fireEvent });
-        emit('onselect', { selectedDate: currentDs });
-        break;
-      }
-      case 'scalar': {
-        if (ds.dataType !== 'array') {
-        emit('onselect', { selectedDate: currentDs });
-          return;
-        }
-        const value = await ds.getValue();
-        await currentDs.setValue(null, value[index]);
-        break;
-      }
+
+    //object case
+    if (currentDs.type === 'scalar' && ds.dataType === 'array') {
+      const value = await ds.getValue();
+      await currentDs.setValue(null, value[index]);
+
+      emit('onselect', {
+        index,
+        value: value[index],
+        type: 'scalar',
+      });
     }
   };
 
