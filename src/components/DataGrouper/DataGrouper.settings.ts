@@ -2,12 +2,6 @@ import { ESetting, TSetting, DEFAULT_ITERATOR, ETextFieldModifier } from '@ws-ui
 import { BASIC_SETTINGS, DEFAULT_SETTINGS, load } from '@ws-ui/webform-editor';
 
 const commonSettings: TSetting[] = [
-  {
-    key: 'groupBy',
-    label: 'Group By',
-    type: ESetting.TEXT_FIELD,
-    defaultValue: '',
-  },
 ];
 
 const dataAccessSettings: TSetting[] = [
@@ -20,6 +14,12 @@ const dataAccessSettings: TSetting[] = [
     key: 'currentElement',
     label: 'Selected Element',
     type: ESetting.DS_AUTO_SUGGEST,
+  },
+    {
+    key: 'groupBy',
+    label: 'Group by',
+    type: ESetting.DS_AUTO_SUGGEST,
+    datasourceProperty:'datasource',
   },
   {
     key: 'iterator',

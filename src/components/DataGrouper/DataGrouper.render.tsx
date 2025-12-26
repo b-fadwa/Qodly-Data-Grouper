@@ -1,6 +1,7 @@
 import {
   EntityProvider,
   selectResolver,
+  updateEntity,
   useDataLoader,
   useEnhancedEditor,
   useRenderer,
@@ -29,6 +30,34 @@ const DataGrouper: FC<IDataGrouperProps> = ({
 
   const [value, setValue] = useState<any[]>([]);
   const [groupedData, setGroupedData] = useState<Record<string, any[]>>({});
+
+  //update selected element
+  const handleSelectedElementChange = async ({
+    index,
+    fireEvent = true,
+  }: {
+    index: number;
+    forceUpdate?: boolean;
+    fireEvent?: boolean;
+  }) => {
+    if (!ds || !currentDs) {
+      return;
+    }
+    switch (currentDs.type) {
+      case 'entity': {
+        await updateEntity({ index, datasource: ds, currentElement: currentDs, fireEvent });
+        break;
+      }
+      case 'scalar': {
+        if (ds.dataType !== 'array') {
+          return;
+        }
+        const value = await ds.getValue();
+        await currentDs.setValue(null, value[index]);
+        break;
+      }
+    }
+  };
 
   //read array datasource
   useEffect(() => {
@@ -85,7 +114,11 @@ const DataGrouper: FC<IDataGrouperProps> = ({
   //refacto : data display structure
   const dataStructure = (entity: any, index: any) => {
     return (
-      <div key={entity.__KEY} className="relative h-full flex-shrink-0 w-full">
+      <div
+        key={entity.__KEY}
+        className="content-box border border-gray-300 rounded-md m-px relative h-full flex-shrink-0 w-full"
+        onClick={() => handleSelectedElementChange({ index })}
+      >
         <EntityProvider index={index} selection={ds} current={currentDs?.id} iterator={iterator}>
           <Element
             id="dataGrouperItem"

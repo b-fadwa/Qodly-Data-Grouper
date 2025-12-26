@@ -57,10 +57,8 @@ export default {
     },
   },
   defaultProps: {
-    groupBy: '',
     style: {
       height: '400px',
-      minHeight: '400px',
       overflow:'auto'
     },
   },
