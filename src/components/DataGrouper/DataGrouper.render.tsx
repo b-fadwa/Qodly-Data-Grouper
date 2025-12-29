@@ -31,6 +31,9 @@ const DataGrouper: FC<IDataGrouperProps> = ({
   const [value, setValue] = useState<any[]>([]);
   const [groupedData, setGroupedData] = useState<Record<string, any[]>>({});
 
+  // accordion effect
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
   //update selected element
   const handleSelectedElementChange = async ({ index }: { index: number }) => {
     if (!ds || !currentDs) return;
@@ -120,6 +123,29 @@ const DataGrouper: FC<IDataGrouperProps> = ({
     setGroupedData(grouped);
   }, [value, groupBy]);
 
+
+  useEffect(() => {
+  if (!groupBy) return;
+
+  const initialOpenState = Object.keys(groupedData).reduce(
+    (acc: Record<string, boolean>, key) => {
+      acc[key] = true; 
+      return acc;
+    },
+    {},
+  );
+
+  setOpenGroups(initialOpenState);
+}, [groupedData, groupBy]);
+
+  //accordion effect
+  const toggleGroup = (groupKey: string) => {
+    setOpenGroups((prev) => ({
+      ...prev,
+      [groupKey]: !prev[groupKey],
+    }));
+  };
+
   //refacto : data display structure
   const dataStructure = (entity: any, index: any) => {
     return (
@@ -149,13 +175,28 @@ const DataGrouper: FC<IDataGrouperProps> = ({
         {ds?.dataType === 'array' && (
           <>
             {groupBy
-              ? Object.entries(groupedData).map(([groupKey, items]) => (
-                  <div key={groupKey} className="mb-4">
-                    <div className="category-label font-semibold mb-2">{groupKey}</div>
+              ? Object.entries(groupedData).map(([groupKey, items]) => {
+                  const isOpen = openGroups[groupKey];
 
-                    {items.map(({ entity, originalIndex }) => dataStructure(entity, originalIndex))}
-                  </div>
-                ))
+                  return (
+                    <div key={groupKey} className="mb-4">
+                      {/* Accordion header */}
+                      <div
+                        className="category-label font-semibold mb-2 cursor-pointer flex justify-between items-center"
+                        onClick={() => toggleGroup(groupKey)}
+                      >
+                        <span>{groupKey}</span>
+                        <span className="text-sm">{isOpen ? '−' : '+'}</span>
+                      </div>
+
+                      {/* Accordion content */}
+                      {isOpen &&
+                        items.map(({ entity, originalIndex }) =>
+                          dataStructure(entity, originalIndex),
+                        )}
+                    </div>
+                  );
+                })
               : value.map((entity, index) => dataStructure(entity, index))}
           </>
         )}
@@ -163,12 +204,28 @@ const DataGrouper: FC<IDataGrouperProps> = ({
         {ds?.dataType !== 'array' && (
           <>
             {groupBy
-              ? Object.entries(groupedData).map(([groupKey, items]) => (
-                  <div key={groupKey} className="mb-4">
-                    <div className="category-label font-semibold mb-2">{groupKey}</div>
-                    {items.map(({ entity, originalIndex }) => dataStructure(entity, originalIndex))}
-                  </div>
-                ))
+              ? Object.entries(groupedData).map(([groupKey, items]) => {
+                  const isOpen = openGroups[groupKey];
+
+                  return (
+                    <div key={groupKey} className="mb-4">
+                      {/* Accordion header */}
+                      <div
+                        className="category-label font-semibold mb-2 cursor-pointer flex justify-between items-center"
+                        onClick={() => toggleGroup(groupKey)}
+                      >
+                        <span>{groupKey}</span>
+                        <span className="text-sm">{isOpen ? '−' : '+'}</span>
+                      </div>
+
+                      {/* Accordion content */}
+                      {isOpen &&
+                        items.map(({ entity, originalIndex }) =>
+                          dataStructure(entity, originalIndex),
+                        )}
+                    </div>
+                  );
+                })
               : value.map((entity, index) => dataStructure(entity, index))}
           </>
         )}
