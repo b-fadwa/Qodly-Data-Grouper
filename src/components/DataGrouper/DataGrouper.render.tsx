@@ -134,7 +134,6 @@ const DataGrouper: FC<IDataGrouperProps> = ({
       },
       {},
     );
-    console.log(initialOpenState);
 
     setOpenGroups(initialOpenState);
   }, [groupedData, groupBy]);
