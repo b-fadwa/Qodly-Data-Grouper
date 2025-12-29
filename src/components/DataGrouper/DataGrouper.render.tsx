@@ -123,20 +123,19 @@ const DataGrouper: FC<IDataGrouperProps> = ({
     setGroupedData(grouped);
   }, [value, groupBy]);
 
-
   useEffect(() => {
-  if (!groupBy) return;
+    if (!groupBy) return;
 
-  const initialOpenState = Object.keys(groupedData).reduce(
-    (acc: Record<string, boolean>, key) => {
-      acc[key] = true; 
-      return acc;
-    },
-    {},
-  );
+    const initialOpenState = Object.keys(groupedData).reduce(
+      (acc: Record<string, boolean>, key) => {
+        acc[key] = true;
+        return acc;
+      },
+      {},
+    );
 
-  setOpenGroups(initialOpenState);
-}, [groupedData, groupBy]);
+    setOpenGroups(initialOpenState);
+  }, [groupedData, groupBy]);
 
   //accordion effect
   const toggleGroup = (groupKey: string) => {
@@ -168,6 +167,21 @@ const DataGrouper: FC<IDataGrouperProps> = ({
     );
   };
 
+  //used to check if input is a date
+  const isValidDate = (value: string) => {
+    const d = new Date(value);
+    return !isNaN(d.getTime());
+  };
+
+  //used to format date if needed
+  const formatDateUS = (date: any): string => {    
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const year = date.getFullYear();    
+
+    return  `${month}/${day}/${year}`;
+  };
+
   return (
     <div ref={connect} style={style} className={cn(className, classNames, 'overflow-auto')}>
       <div className="p-2">
@@ -176,16 +190,20 @@ const DataGrouper: FC<IDataGrouperProps> = ({
           <>
             {groupBy
               ? Object.entries(groupedData).map(([groupKey, items]) => {
-                  const isOpen = openGroups[groupKey];
+                // format date if provided
+                  const groupLabel = isValidDate(groupKey)
+                    ? formatDateUS(new Date(groupKey))
+                    : groupKey;
+                  const isOpen = openGroups[groupLabel];
 
                   return (
-                    <div key={groupKey} className="mb-4">
+                    <div key={groupLabel} className="mb-4">
                       {/* Accordion header */}
                       <div
                         className="category-label font-semibold mb-2 cursor-pointer flex justify-between items-center"
-                        onClick={() => toggleGroup(groupKey)}
+                        onClick={() => toggleGroup(groupLabel)}
                       >
-                        <span>{groupKey}</span>
+                        <span>{groupLabel}</span>
                         <span className="text-sm">{isOpen ? '−' : '+'}</span>
                       </div>
 
@@ -205,16 +223,20 @@ const DataGrouper: FC<IDataGrouperProps> = ({
           <>
             {groupBy
               ? Object.entries(groupedData).map(([groupKey, items]) => {
-                  const isOpen = openGroups[groupKey];
+                // format date if provided
+                  const groupLabel = isValidDate(groupKey)
+                    ? formatDateUS(new Date(groupKey))
+                    : groupKey;
+                  const isOpen = openGroups[groupLabel];
 
                   return (
-                    <div key={groupKey} className="mb-4">
+                    <div key={groupLabel} className="mb-4">
                       {/* Accordion header */}
                       <div
                         className="category-label font-semibold mb-2 cursor-pointer flex justify-between items-center"
-                        onClick={() => toggleGroup(groupKey)}
+                        onClick={() => toggleGroup(groupLabel)}
                       >
-                        <span>{groupKey}</span>
+                        <span>{groupLabel}</span>
                         <span className="text-sm">{isOpen ? '−' : '+'}</span>
                       </div>
 
