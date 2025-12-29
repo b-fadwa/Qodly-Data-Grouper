@@ -128,11 +128,13 @@ const DataGrouper: FC<IDataGrouperProps> = ({
 
     const initialOpenState = Object.keys(groupedData).reduce(
       (acc: Record<string, boolean>, key) => {
-        acc[key] = true;
+        const formattedKey = isValidDate(key) ? formatDateUS(new Date(key)) : key;
+        acc[formattedKey] = true;
         return acc;
       },
       {},
     );
+    console.log(initialOpenState);
 
     setOpenGroups(initialOpenState);
   }, [groupedData, groupBy]);
@@ -174,12 +176,12 @@ const DataGrouper: FC<IDataGrouperProps> = ({
   };
 
   //used to format date if needed
-  const formatDateUS = (date: any): string => {    
+  const formatDateUS = (date: any): string => {
     const month = date.getMonth() + 1;
     const day = date.getDate();
-    const year = date.getFullYear();    
+    const year = date.getFullYear();
 
-    return  `${month}/${day}/${year}`;
+    return `${month}/${day}/${year}`;
   };
 
   return (
@@ -190,7 +192,7 @@ const DataGrouper: FC<IDataGrouperProps> = ({
           <>
             {groupBy
               ? Object.entries(groupedData).map(([groupKey, items]) => {
-                // format date if provided
+                  // format date if provided
                   const groupLabel = isValidDate(groupKey)
                     ? formatDateUS(new Date(groupKey))
                     : groupKey;
@@ -223,7 +225,7 @@ const DataGrouper: FC<IDataGrouperProps> = ({
           <>
             {groupBy
               ? Object.entries(groupedData).map(([groupKey, items]) => {
-                // format date if provided
+                  // format date if provided
                   const groupLabel = isValidDate(groupKey)
                     ? formatDateUS(new Date(groupKey))
                     : groupKey;
