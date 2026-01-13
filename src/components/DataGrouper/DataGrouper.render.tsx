@@ -29,9 +29,11 @@ const DataGrouper: FC<IDataGrouperProps> = ({
   const { entities, fetchIndex } = useDataLoader({ source: ds });
 
   const [value, setValue] = useState<any[]>([]);
-  const [groupedData, setGroupedData] = useState<Record<string, any[]>>({});
+  const [groupedData, setGroupedData] = useState<
+    Record<string, { entity: any; originalIndex: number }[]>
+  >({});
 
-  // accordion effect
+  //accordion effect
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
   //update selected element
@@ -56,12 +58,12 @@ const DataGrouper: FC<IDataGrouperProps> = ({
 
     //object case
     if (currentDs.type === 'scalar' && ds.dataType === 'array') {
-      const value = await ds.getValue();
-      await currentDs.setValue(null, value[index]);
+      const arr = await ds.getValue();
+      await currentDs.setValue(null, arr[index]);
 
       emit('onselect', {
         index,
-        value: value[index],
+        value: arr[index],
         type: 'scalar',
       });
     }
@@ -83,7 +85,7 @@ const DataGrouper: FC<IDataGrouperProps> = ({
         setValue(arr);
         return;
       }
-      fetchIndex(0);
+      await fetchIndex(0);
     };
 
     load();
@@ -106,19 +108,16 @@ const DataGrouper: FC<IDataGrouperProps> = ({
       setGroupedData({});
       return;
     }
-    const grouped = value.reduce(
-      (
-        acc: Record<string, { entity: any; originalIndex: number }[]>,
-        entity: any,
-        originalIndex: number,
-      ) => {
-        const key = entity[groupBy];
-        if (!acc[key]) acc[key] = [];
-        acc[key].push({ entity, originalIndex });
-        return acc;
-      },
-      {},
-    );
+
+    const grouped: Record<string, { entity: any; originalIndex: number }[]> = {};
+
+    value.forEach((item, index) => {
+      const rawKey = item[groupBy];
+      //item.groupBy
+      const key = normalizeGroupKey(rawKey);
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push({ entity: item, originalIndex: index });
+    });
 
     setGroupedData(grouped);
   }, [value, groupBy]);
@@ -126,16 +125,13 @@ const DataGrouper: FC<IDataGrouperProps> = ({
   useEffect(() => {
     if (!groupBy) return;
 
-    const initialOpenState = Object.keys(groupedData).reduce(
-      (acc: Record<string, boolean>, key) => {
-        const formattedKey = isValidDate(key) ? formatDateUS(new Date(key)) : key;
-        acc[formattedKey] = true;
-        return acc;
-      },
-      {},
-    );
-
-    setOpenGroups(initialOpenState);
+    setOpenGroups((prev) => {
+      const next: Record<string, boolean> = {};
+      Object.keys(groupedData).forEach((key) => {
+        next[key] = prev[key] ?? true;
+      });
+      return next;
+    });
   }, [groupedData, groupBy]);
 
   //accordion effect
@@ -147,40 +143,46 @@ const DataGrouper: FC<IDataGrouperProps> = ({
   };
 
   //refacto : data display structure
-  const dataStructure = (entity: any, index: any) => {
-    return (
-      <div
-        key={entity.__KEY}
-        className="content-box border border-gray-300 rounded-md m-px relative h-full flex-shrink-0 w-full"
-        onClick={() => handleSelectedElementChange({ index })}
-      >
-        <EntityProvider index={index} selection={ds} current={currentDs?.id} iterator={iterator}>
-          <Element
-            id="dataGrouperItem"
-            className="h-full w-full "
-            role="dataGrouperItem-content"
-            is={resolver.StyleBox}
-            canvas
-            iterableChild
-          />
-        </EntityProvider>
-      </div>
-    );
+  const dataStructure = (entity: any, index: any) => (
+    <div
+      key={entity.__KEY ?? index}
+      className="content-box border border-gray-300 rounded-md m-px relative h-full flex-shrink-0 w-full"
+      onClick={() => handleSelectedElementChange({ index })}
+    >
+      <EntityProvider index={index} selection={ds} current={currentDs?.id} iterator={iterator}>
+        <Element
+          id="dataGrouperItem"
+          className="h-full w-full"
+          role="dataGrouperItem-content"
+          is={resolver.StyleBox}
+          canvas
+          iterableChild
+        />
+      </EntityProvider>
+    </div>
+  );
+
+  //used to format it to US format
+  const formatDateUS = (key: string) => {
+    const [y, m, d] = key.split('-');
+    return `${Number(m)}/${Number(d)}/${y}`;
   };
 
-  //used to check if input is a date
-  const isValidDate = (value: string) => {
-    const d = new Date(value);
-    return !isNaN(d.getTime());
-  };
+  //makes sure it's a valid date
+  const isISODateString = (value: any): value is string =>
+    typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
 
-  //used to format date if needed
-  const formatDateUS = (date: any): string => {
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const year = date.getFullYear();
+  //normalize group key
+  const normalizeGroupKey = (value: any) => {
+    if (value instanceof Date) {
+      return value.toISOString().slice(0, 10);
+    }
 
-    return `${month}/${day}/${year}`;
+    if (isISODateString(value)) {
+      return value;
+    }
+
+    return String(value);
   };
 
   return (
@@ -192,17 +194,15 @@ const DataGrouper: FC<IDataGrouperProps> = ({
             {groupBy
               ? Object.entries(groupedData).map(([groupKey, items]) => {
                   // format date if provided
-                  const groupLabel = isValidDate(groupKey)
-                    ? formatDateUS(new Date(groupKey))
-                    : groupKey;
-                  const isOpen = openGroups[groupLabel];
+                  const groupLabel = isISODateString(groupKey) ? formatDateUS(groupKey) : groupKey;
+                  const isOpen = openGroups[groupKey];
 
                   return (
-                    <div key={groupLabel} className="mb-4">
+                    <div key={groupKey} className="mb-4">
                       {/* Accordion header */}
                       <div
                         className="category-label font-semibold mb-2 cursor-pointer flex justify-between items-center"
-                        onClick={() => toggleGroup(groupLabel)}
+                        onClick={() => toggleGroup(groupKey)}
                       >
                         <span>{groupLabel}</span>
                         <span className="text-sm">{isOpen ? '−' : '+'}</span>
@@ -225,17 +225,15 @@ const DataGrouper: FC<IDataGrouperProps> = ({
             {groupBy
               ? Object.entries(groupedData).map(([groupKey, items]) => {
                   // format date if provided
-                  const groupLabel = isValidDate(groupKey)
-                    ? formatDateUS(new Date(groupKey))
-                    : groupKey;
-                  const isOpen = openGroups[groupLabel];
+                  const groupLabel = isISODateString(groupKey) ? formatDateUS(groupKey) : groupKey;
+                  const isOpen = openGroups[groupKey];
 
                   return (
-                    <div key={groupLabel} className="mb-4">
+                    <div key={groupKey} className="mb-4">
                       {/* Accordion header */}
                       <div
                         className="category-label font-semibold mb-2 cursor-pointer flex justify-between items-center"
-                        onClick={() => toggleGroup(groupLabel)}
+                        onClick={() => toggleGroup(groupKey)}
                       >
                         <span>{groupLabel}</span>
                         <span className="text-sm">{isOpen ? '−' : '+'}</span>
