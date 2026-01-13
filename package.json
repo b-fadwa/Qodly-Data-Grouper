@@ -2,7 +2,7 @@
   "app_id": "qodly_b81f64309347d325fc7b",
   "name": "data-grouper",
   "private": true,
-  "version": "0.0.5",
+  "version": "0.0.6",
   "type": "module",
   "author": {
     "name": "Qodly Team",
@@ -16,7 +16,7 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write \"**/*.{ts,tsx,js,mjs,json,jsx,html,css}\""
   },
-"overrides": {
+  "overrides": {
     "@ws-ui/webform-editor": {
       "@ws-ui/code-editor": "0.2.23",
       "@ws-ui/icons": "0.0.29",
@@ -38,12 +38,13 @@
     "@ws-ui/craftjs-layers": "0.2.4",
     "@ws-ui/craftjs-utils": "0.2.3",
     "@ws-ui/webform-editor": "0.3.59",
+    "classnames": "^2.5.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "classnames": "^2.5.1",
     "react-icons": "^4.3.1"
   },
   "devDependencies": {
+    "@module-federation/vite": "^1.9.4",
     "@qodly/cli": "0.3.2",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
@@ -56,6 +57,7 @@
     "eslint-plugin-prettier": "^5.1.3",
     "eslint-plugin-react-hooks": "^4.6.0",
     "typescript": "^5.3.3",
-    "vite": "^5.0.12"
+    "vite": "^5.0.12",
+    "vite-plugin-css-injected-by-js": "^3.5.2"
   }
 }
