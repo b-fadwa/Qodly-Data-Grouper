@@ -14,6 +14,7 @@ import { IDataGrouperProps } from './DataGrouper.config';
 
 const DataGrouper: FC<IDataGrouperProps> = ({
   groupBy,
+  sumBy,
   iterator,
   style,
   className,
@@ -35,6 +36,9 @@ const DataGrouper: FC<IDataGrouperProps> = ({
 
   //accordion effect
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
+  //sum
+  const [groupSums, setGroupSums] = useState<Record<string, Record<string, number>>>({});
 
   //update selected element
   const handleSelectedElementChange = async ({ index }: { index: number }) => {
@@ -185,6 +189,33 @@ const DataGrouper: FC<IDataGrouperProps> = ({
     return String(value);
   };
 
+  const computeGroupSums = (
+    items: { entity: any }[],
+    sumBy: { title: string; valueKey: string }[],
+  ) =>
+    sumBy.reduce<Record<string, number>>((acc, { title, valueKey }) => {
+      acc[title] = items.reduce((sum, { entity }) => {
+        return sum + (Number(entity?.[valueKey]) || 0);
+      }, 0);
+
+      return acc;
+    }, {});
+
+  useEffect(() => {
+    if (!groupBy || !sumBy?.length) {
+      setGroupSums({});
+      return;
+    }
+
+    const next: Record<string, Record<string, number>> = {};
+
+    Object.entries(groupedData).forEach(([groupKey, items]) => {
+      next[groupKey] = computeGroupSums(items, sumBy);
+    });
+
+    setGroupSums(next);
+  }, [groupedData, sumBy, groupBy]);
+
   return (
     <div ref={connect} style={style} className={cn(className, classNames, 'overflow-auto')}>
       <div className="p-2">
@@ -205,6 +236,15 @@ const DataGrouper: FC<IDataGrouperProps> = ({
                         onClick={() => toggleGroup(groupKey)}
                       >
                         <span>{groupLabel}</span>
+                        {sumBy && sumBy?.length > 0 && groupSums[groupKey] && (
+                          <div className="sumBy-span flex gap-3 text-sm text-gray-600 ">
+                            {sumBy.map(({ title }) => (
+                              <span key={title}>
+                                {title}: {groupSums[groupKey][title] ?? 0}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                         <span className="text-sm">{isOpen ? '−' : '+'}</span>
                       </div>
 
@@ -236,6 +276,15 @@ const DataGrouper: FC<IDataGrouperProps> = ({
                         onClick={() => toggleGroup(groupKey)}
                       >
                         <span>{groupLabel}</span>
+                        {sumBy && sumBy?.length > 0 && groupSums[groupKey] && (
+                          <div className="sumBy-span flex gap-3 text-sm text-gray-600">
+                            {sumBy.map(({ title }) => (
+                              <span key={title}>
+                                {title}: {groupSums[groupKey][title] ?? 0}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                         <span className="text-sm">{isOpen ? '−' : '+'}</span>
                       </div>
 

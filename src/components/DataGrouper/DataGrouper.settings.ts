@@ -1,8 +1,7 @@
 import { ESetting, TSetting, DEFAULT_ITERATOR, ETextFieldModifier } from '@ws-ui/webform-editor';
 import { BASIC_SETTINGS, DEFAULT_SETTINGS, load } from '@ws-ui/webform-editor';
 
-const commonSettings: TSetting[] = [
-];
+const commonSettings: TSetting[] = [];
 
 const dataAccessSettings: TSetting[] = [
   {
@@ -15,11 +14,32 @@ const dataAccessSettings: TSetting[] = [
     label: 'Selected Element',
     type: ESetting.DS_AUTO_SUGGEST,
   },
-    {
+  {
     key: 'groupBy',
     label: 'Group by',
     type: ESetting.DS_AUTO_SUGGEST,
-    datasourceProperty:'datasource',
+    datasourceProperty: 'datasource',
+  },
+  {
+    type: ESetting.DATAGRID,
+    key: 'sumBy',
+    label: 'Sum by',
+    titleProperty: 'title',
+    data: [
+      {
+        label: 'Title',
+        key: 'title',
+        defaultValue: '',
+        type: ESetting.TEXT_FIELD,
+      },
+      {
+        label: 'Value',
+        key: 'valueKey',
+        defaultValue: '',
+        type: ESetting.DS_AUTO_SUGGEST,
+        datasourceProperty: 'datasource',
+      },
+    ],
   },
   {
     key: 'iterator',
@@ -50,8 +70,8 @@ const Settings: TSetting[] = [
     type: ESetting.GROUP,
     components: dataAccessSettings,
   },
- ...load(DEFAULT_SETTINGS).filter(
-    'dataAccess')];
+  ...load(DEFAULT_SETTINGS).filter('dataAccess'),
+];
 
 export const BasicSettings: TSetting[] = [
   ...commonSettings,

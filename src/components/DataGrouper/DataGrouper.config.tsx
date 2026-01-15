@@ -91,4 +91,6 @@ export default {
 
 export interface IDataGrouperProps extends webforms.ComponentProps {
   groupBy?: string;
+  sumBy?: any[];
+
 }
