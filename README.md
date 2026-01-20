@@ -19,7 +19,7 @@ It is built to work seamlessly with **both array datasources and entity selectio
 
 ### Custom Css
 
-Below, is a css class sample containing all the customisable parts of the query builder component:
+Below, is a css class sample containing all the customisable parts of the data grouper component:
 
 ```css
 /*to customize the category label*/
